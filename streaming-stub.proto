@@ -1,0 +1,19 @@
+syntax="proto3";
+package service;
+
+service BillingServer {
+    rpc quickBilling(stream InputValue) returns (Bill);
+    rpc oneByOneBilling(stream InputValue) returns (stream Bill);
+}
+
+message InputValue { 
+    string itemName = 1;
+    int64 quantity = 2;
+    float price = 3; 
+}
+
+message Bill {
+    string billType = 1;
+    int64 totalQuantity = 2;
+    float totalPrice = 3;
+}
