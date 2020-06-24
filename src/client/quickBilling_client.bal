@@ -1,16 +1,35 @@
 import ballerina/grpc;
 import ballerina/io;
 
-public function main (string... args) {
+string opMode = "";
+
+public function main (string mode) {
 
     BillingServerClient ep = new("http://localhost:9090");
-    grpc:StreamingClient | grpc:Error streamClient = ep->oneByOneBilling(BillingServerMessageListener);
+
+    grpc:StreamingClient | grpc:Error streamClient;
+
+    if (mode == "quick") {
+        opMode = "Quick";
+        // Initialize call with quickBilling resource
+        streamClient = ep->quickBilling(BillingServerMessageListener);
+    } else if (mode == "oneByOne") {
+        opMode = "One by one";
+        // Initialize call with oneByOneBilling resource
+        streamClient = ep->oneByOneBilling(BillingServerMessageListener);
+    } else {
+        io:println("Unsupported operation mode entered!");
+        return;
+    }
+
     if (streamClient is grpc:Error) {
         io:println("Error from Connector: " + streamClient.message() + " - "
                                            + <string>streamClient.detail()["message"]);
         return;
     } else {
         //Start sending messages to the server
+        io:println("Starting " + opMode + " billing service");
+        // Sending first message
         InputValue item = {
             itemName: "Apples",
             quantity: 4,
@@ -25,6 +44,7 @@ public function main (string... args) {
                                         " Price: " + item.price.toString());
         }
 
+        // Sending second message
         item = {
             itemName: "Oranges",
             quantity: 6,
@@ -38,7 +58,8 @@ public function main (string... args) {
             io:println("Sent item: " + item.itemName + " Quantity: " + item.quantity.toString() + 
                                         " Price: " + item.price.toString());
         }
-        
+
+        // Sending third message
         item = {
             itemName: "Grapes",
             quantity: 20,
@@ -53,6 +74,7 @@ public function main (string... args) {
                                         " Price: " + item.price.toString());
         }
 
+        // Sending complete signal
         connErr = streamClient->complete();
         if (connErr is grpc:Error) {
             io:println("Error from Connector: " + connErr.message() + " - "
@@ -61,6 +83,7 @@ public function main (string... args) {
     }
 }
 
+// Message listener for incoming messages
 service BillingServerMessageListener = service {
 
     resource function onMessage(Bill message) {
@@ -74,7 +97,6 @@ service BillingServerMessageListener = service {
     }
 
     resource function onComplete() {
-        io:println("One by one billing completed");
+        io:println(opMode +" billing completed");
     }
 };
-
