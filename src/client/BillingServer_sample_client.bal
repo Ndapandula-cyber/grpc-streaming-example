@@ -87,7 +87,7 @@ public function main (string mode) {
 service BillingServerMessageListener = service {
 
     resource function onMessage(Bill message) {
-        io:println("Recieved " + message.billType  + "Total: " + message.totalPrice.toString() +
+        io:println("Received " + message.billType  + " Total: " + message.totalPrice.toString() +
                                                 " for " + message.totalQuantity.toString() + " items" );
     }
 
